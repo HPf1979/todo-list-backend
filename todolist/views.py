@@ -7,6 +7,8 @@ from rest_framework.views import APIView
 from todolist.serializers import TodoItemSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework import generics
 
 # Create your views here.
 
@@ -20,6 +22,19 @@ class TodoItemView(APIView):
         todos = TodoItem.objects.filter(author=request.user)
         serializer = TodoItemSerializer(todos, many=True)
         return Response(serializer.data)
+
+    def post(self, request, format=None):
+        todos = TodoItem.objects.filter(author=request.user)
+        serializer = TodoItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id=None):
+        todos = TodoItem.objects.filter(id=id)
+        todos.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LoginView(ObtainAuthToken):
